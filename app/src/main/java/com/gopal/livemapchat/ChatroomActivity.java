@@ -2,13 +2,17 @@ package com.gopal.livemapchat;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,9 +27,12 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.auth.User;
 import com.gopal.livemapchat.adapter.ChatMessageRecyclerAdapter;
+import com.gopal.livemapchat.fragments.UserListFragment;
 import com.gopal.livemapchat.models.ChatMessage;
 import com.gopal.livemapchat.models.Chatroom;
 import com.gopal.livemapchat.models.UserLocation;
@@ -51,7 +58,6 @@ public class ChatroomActivity extends AppCompatActivity {
     private ArrayList<Users> userList = new ArrayList<>();
     private ArrayList<UserLocation> userLocations = new ArrayList<>();
     private ImageView checkMark;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +115,10 @@ public class ChatroomActivity extends AppCompatActivity {
         }
     }
 
+    private void hideSoftKeyboard() {
+        this.getWindow().setSoftInputMode( WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN );
+    }
+
     private void clearMessageBox() {
         messageEt.setText( "" );
     }
@@ -120,6 +130,34 @@ public class ChatroomActivity extends AppCompatActivity {
     }
 
     private void getChatMessages() {
+        CollectionReference messageRef = firebaseFirestore
+                .collection( getString( R.string.collection_chatrooms ) )
+                .document( chatroom.getChatroom_id() )
+                .collection( getString( R.string.collection_chat_messages ) );
+
+        chatMessageEventListener = messageRef
+                .orderBy( "timestamp", Query.Direction.ASCENDING )
+                .addSnapshotListener( new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            Log.i( TAG, "onEvent: Error  Occured while retreiving data" );
+                            return;
+                        }
+
+                        if (value != null) {
+                            for (QueryDocumentSnapshot doc : value) {
+                                ChatMessage message = doc.toObject( ChatMessage.class );
+                                if (!messageIds.contains( message.getMessage_id() )) {
+                                    messageIds.add( message.getMessage_id() );
+                                    messages.add( message );
+                                    chatMessageRecyclerView.smoothScrollToPosition( messageIds.size() - 1 );
+                                }
+                            }
+                            mChatMessageRecyclerAdapter.notifyDataSetChanged();
+                        }
+                    }
+                } );
     }
 
     private void getChatroomUsers() {
@@ -139,7 +177,6 @@ public class ChatroomActivity extends AppCompatActivity {
 
                 if (value != null) {
                     userList.clear();
-                    userList = new ArrayList<>();
                     for (QueryDocumentSnapshot doc : value) {
                         Users users = doc.toObject( Users.class );
                         userList.add( users );
@@ -167,7 +204,7 @@ public class ChatroomActivity extends AppCompatActivity {
     }
 
     private void initChatroomRecyclerView() {
-        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter( messages, userList, this );
+        mChatMessageRecyclerAdapter = new ChatMessageRecyclerAdapter( messages, new ArrayList<Users>(), this );
         chatMessageRecyclerView.setAdapter( mChatMessageRecyclerAdapter );
         chatMessageRecyclerView.setLayoutManager( new LinearLayoutManager( this ) );
 
@@ -217,5 +254,70 @@ public class ChatroomActivity extends AppCompatActivity {
 
         Users users = ((UserClient) getApplication()).getUsers();
         chatRoomRef.set( users ); //DOnt care about listening
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate( R.menu.chatroom_menu, menu );
+        return super.onCreateOptionsMenu( menu );
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (chatMessageEventListener != null)
+            chatMessageEventListener.remove();
+        if (userListEventListener != null)
+            userListEventListener.remove();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home: {
+                UserListFragment fragment =
+                        (UserListFragment) getSupportFragmentManager().findFragmentByTag( getString( R.string.fragment_user_list ) );
+                if (fragment != null) {
+                    if (fragment.isVisible()) {
+                        getSupportFragmentManager().popBackStack();
+                        return true;
+                    }
+                }
+                finish();
+                return true;
+            }
+            case R.id.action_chatroom_user_list: {
+                // TODO: 10/2/2021  
+                inflateUserListFragment();
+                return true;
+            }
+            case R.id.action_chatroom_leave: {
+                // TODO: 10/2/2021
+                leaveChatroom();
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected( item );
+            }
+        }
+    }
+
+    private void leaveChatroom() {
+    }
+
+    private void inflateUserListFragment() {
+        hideSoftKeyboard();
+
+        UserListFragment userListFragment = UserListFragment.newInstance();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList( getString( R.string.intent_user_list ), userList );
+        bundle.putParcelableArrayList( getString( R.string.intent_user_locations ), userLocations );
+        userListFragment.setArguments( bundle );
+
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.setCustomAnimations( R.anim.slide_in_up, R.anim.slide_out_up );
+        fragmentTransaction.replace( R.id.user_list_container, userListFragment, getString( R.string.fragment_user_list ) );
+        fragmentTransaction.addToBackStack( getString( R.string.fragment_user_list ) );
+        fragmentTransaction.commit();
     }
 }

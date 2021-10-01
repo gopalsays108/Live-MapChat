@@ -46,8 +46,8 @@ public class ChatMessageRecyclerAdapter extends RecyclerView.Adapter<ChatMessage
             holder.username.setTextColor( context.getColor( R.color.blue2 ) );
         }
 
-        holder.message.setText( messages.get( holder.getAdapterPosition() ).getMessage() );
-        holder.username.setText( users.get( holder.getAdapterPosition() ).getUsername() );
+        holder.message.setText( messages.get( position).getMessage() );
+        holder.username.setText( messages.get( position ).getUser().getUsername() );
 
     }
 
