@@ -20,6 +20,8 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.transition.Visibility;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -38,6 +40,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -55,6 +58,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 import com.gopal.livemapchat.adapter.ChatroomRecyclerAdapter;
+import com.gopal.livemapchat.loginregister.LoginActivity;
 import com.gopal.livemapchat.models.Chatroom;
 import com.gopal.livemapchat.models.UserLocation;
 import com.gopal.livemapchat.models.Users;
@@ -140,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createNewChatRoom(String name) {
+        showDialog();
+
         final Chatroom chatroom = new Chatroom();
         chatroom.setTitle( name );
 
@@ -151,12 +157,18 @@ public class MainActivity extends AppCompatActivity {
         newChatroomRef.set( chatroom ).addOnCompleteListener( new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                hideDialog();
                 if (task.isSuccessful()) {
                     navChatroomActivity( chatroom );
                 } else {
                     View view = findViewById( R.id.content );
                     Snackbar.make( view, "Something went wrong", Snackbar.LENGTH_SHORT ).show();
                 }
+            }
+        } ).addOnFailureListener( new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                hideDialog();
             }
         } );
     }
@@ -310,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initChatRoomRecyclerView() {
-        chatroomRecyclerAdapter = new ChatroomRecyclerAdapter( mChatrooms );
+        chatroomRecyclerAdapter = new ChatroomRecyclerAdapter( mChatrooms, MainActivity.this );
         chatroomRecyclerView.setAdapter( chatroomRecyclerAdapter );
         chatroomRecyclerView.setLayoutManager( new LinearLayoutManager( this ) );
     }
@@ -324,7 +336,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getUserDetails() {
-        Toast.makeText( getApplicationContext(), "user", Toast.LENGTH_SHORT ).show();
         if (userLocation == null) {
             userLocation = new UserLocation();
 
@@ -378,9 +389,10 @@ public class MainActivity extends AppCompatActivity {
         if (!isLocationServiceRunning()) {
             Intent intent = new Intent( getApplicationContext(), LocationService.class );
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                MainActivity.this.startForegroundService( intent );
+                // TODO: 10/2/2021 Uncomment
+                //MainActivity.this.startForegroundService( intent );
             } else {
-                startService( intent );
+                //startService( intent );
             }
         }
     }
@@ -429,6 +441,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void initSupportActionBar() {
         setTitle( "MapChat Chatroom" );
+    }
+
+    private void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent( getApplicationContext(), LoginActivity.class );
+        intent.setFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+        startActivity( intent );
+        finish();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate( R.menu.menu_main, menu );
+        return super.onCreateOptionsMenu( menu );
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_profile){
+            startActivity( new Intent(getApplicationContext(), ProfileActivity.class));
+            return true;
+        }else if(item.getItemId() == R.id.action_sign_out){
+            signOut();
+            return true;
+        }
+        return super.onOptionsItemSelected( item );
     }
 
     private void showDialog() {

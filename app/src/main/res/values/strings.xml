@@ -22,6 +22,9 @@
     <string name="intent_user_list">intent_user_list</string>
     <string name="intent_user_locations">intent_user_locations</string>
     <string name="intent_location">intent_location</string>
+    <string name="profile">Profile</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="new_message">new message...</string>
 
 
 </resources>
