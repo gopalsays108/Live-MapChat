@@ -17,4 +17,11 @@
     <string name="collection_user_locations">User Locations</string>
     <string name="todo">TODO</string>
 
+    <!-- Intent extras -->
+    <string name="intent_chatroom">intent_chatroom</string>
+    <string name="intent_user_list">intent_user_list</string>
+    <string name="intent_user_locations">intent_user_locations</string>
+    <string name="intent_location">intent_location</string>
+
+
 </resources>

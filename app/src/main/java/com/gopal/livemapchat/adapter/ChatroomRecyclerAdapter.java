@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,52 +16,69 @@ import java.util.ArrayList;
 
 public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecyclerAdapter.ViewHolder> {
 
-    private ArrayList<Chatroom> chatrooms = new ArrayList<>();
-    private final ChatroomRecyclerClickListener listener;
+    private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
 
-
-    public ChatroomRecyclerAdapter(ArrayList<Chatroom> chatrooms, ChatroomRecyclerClickListener chatroomRecyclerClickListener) {
-        this.chatrooms = chatrooms;
-        listener = chatroomRecyclerClickListener;
+    public ChatroomRecyclerAdapter(ArrayList<Chatroom> chatrooms) {
+        this.mChatrooms = chatrooms;
     }
 
+    // Create new views (invoked by the layout manager)
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from( parent.getContext() ).inflate( R.layout.layout_chatroom_list_item, parent, false );
-        return new ViewHolder( view, listener );
+        View view = LayoutInflater.from( parent.getContext() ).inflate( R.layout.layout_chatroom_list_item,
+                parent, false );
+        return new ViewHolder( view );
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ((ViewHolder) holder).chatroomTitle.setText( chatrooms.get( position ).getTitle() );
+        holder.getTextView().setText( mChatrooms.get( position ).getTitle() );
+
+        holder.getTextView().setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText( view.getContext(), holder.getTextView().getText().toString(), Toast.LENGTH_SHORT ).show();
+            }
+        } );
     }
 
+    //Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return 0;
+        return mChatrooms.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        TextView chatroomTitle;
-        ChatroomRecyclerClickListener clickListener;
+    /**
+     * Provide a reference to the type of views that you are using
+     * (custom ViewHolder).
+     */
+    public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        public ViewHolder(@NonNull View itemView, ChatroomRecyclerClickListener listener) {
+        private final TextView chatRoomNameTv;
+
+        public ViewHolder(@NonNull View itemView) {
             super( itemView );
-            chatroomTitle = itemView.findViewById( R.id.chatroom_title );
-            this.clickListener = listener;
-            itemView.setOnClickListener( this );
-
+            chatRoomNameTv = itemView.findViewById( R.id.chatroom_title );
         }
 
-        @Override
-        public void onClick(View view) {
-            clickListener.onChatroomSelected( getAdapterPosition() );
+        public TextView getTextView() {
+            return chatRoomNameTv;
         }
     }
-
-    public interface ChatroomRecyclerClickListener {
-        public void onChatroomSelected(int position);
-    }
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

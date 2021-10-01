@@ -8,7 +8,6 @@ public class Chatroom implements Parcelable {
     private String title;
     private String chatroom_id;
 
-
     public Chatroom(String title, String chatroom_id) {
         this.title = title;
         this.chatroom_id = chatroom_id;
