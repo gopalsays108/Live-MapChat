@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "840676967567",
+    "project_id": "live-map-chat",
+    "storage_bucket": "live-map-chat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840676967567:android:32d0bd27d0bec8cd4e9cfa",
+        "android_client_info": {
+          "package_name": "com.codingwithmitch.googlemaps2018"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "840676967567-8v0891ttcrm8v9hm67ekcm0rf9tpooh6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLTIDUNlKWIABffSowWmAhYy8S2WO0-84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "840676967567-8v0891ttcrm8v9hm67ekcm0rf9tpooh6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:840676967567:android:b6542c62898b13ab4e9cfa",
+        "android_client_info": {
+          "package_name": "com.gopal.livemapchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "840676967567-8v0891ttcrm8v9hm67ekcm0rf9tpooh6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLTIDUNlKWIABffSowWmAhYy8S2WO0-84"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "840676967567-8v0891ttcrm8v9hm67ekcm0rf9tpooh6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

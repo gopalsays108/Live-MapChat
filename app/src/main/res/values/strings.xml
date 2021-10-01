@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">Live MapChat</string>
+    <string name="welcome_to_live_mapchat">Welcome to Live MapChat</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="register">Register</string>
+    <string name="sign_in">Sign In</string>
+    <string name="click_here_to_u_register_u">Click here to <u>Register</u></string>
+    <string name="confirm_password">Confirm password</string>
+
+
+    <!-- Firestore Strings -->
+    <string name="collection_users">Users</string>
+    <string name="collection_chatrooms">Chatrooms</string>
+    <string name="collection_chat_messages">Chat Messages</string>
+    <string name="collection_chatroom_user_list">User List</string>
+    <string name="collection_user_locations">User Locations</string>
+    <string name="todo">TODO</string>
+
 </resources>
