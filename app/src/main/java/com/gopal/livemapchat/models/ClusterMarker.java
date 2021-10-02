@@ -1,5 +1,7 @@
 package com.gopal.livemapchat.models;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -17,7 +19,9 @@ public class ClusterMarker implements ClusterItem {
     private int iconPicture;
     private Users users;
 
-    public ClusterMarker(LatLng position, String title, String snippet, int iconPicture, Users users) {
+    public ClusterMarker(LatLng position, String title,
+                         String snippet, int iconPicture,
+                         Users users) {
         this.position = position;
         this.title = title;
         this.snippet = snippet;
@@ -25,6 +29,7 @@ public class ClusterMarker implements ClusterItem {
         this.users = users;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "ClusterMarker{" +

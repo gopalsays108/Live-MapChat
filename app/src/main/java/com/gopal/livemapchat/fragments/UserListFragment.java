@@ -29,8 +29,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.GeoApiContext;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.gopal.livemapchat.R;
 import com.gopal.livemapchat.adapter.UserRecyclerAdapter;
@@ -169,7 +175,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         // setCameraView();
 
         addMapMarker();
-        // mGoogleMap.setOnPolygonClickListener( this );
+
     }
 
     private void setUserPosition() {
@@ -231,13 +237,13 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
             for (UserLocation userLocation : userLocationArrayList) {
                 try {
                     Log.d( TAG, "addMapMarkers: location: " + userLocation.getGeoPoint().toString() );
-                    String snippet = "";
+                    String snippet;
                     if (userLocation.getUsers().getUser_id().equals( FirebaseAuth.getInstance().getUid() ))
                         snippet = "This is You";
                     else
                         snippet = "Determine route to " + userLocation.getUsers().getUsername() + "?";
 
-                    int avatar = R.drawable.avatar_angry;
+                    int avatar = R.drawable.naruto;
 
                     try {
                         avatar = Integer.parseInt( userLocation.getUsers().getAvatar() );
@@ -246,12 +252,14 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
                     }
 
                     ClusterMarker newClusterMarker = new ClusterMarker(
-                            new LatLng( userLocation.getGeoPoint().getLatitude(), userLocation.getGeoPoint().getLongitude() ),
+                            new LatLng( userLocation.getGeoPoint().getLatitude(),
+                                    userLocation.getGeoPoint().getLongitude() ),
                             userLocation.getUsers().getUsername(),
                             snippet,
                             avatar,
                             userLocation.getUsers()
                     );
+
                     Log.i( TAG, "addMapMarker: " + newClusterMarker.toString() );
 
                     clusterManager.addItem( newClusterMarker );
@@ -282,17 +290,73 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         }
     }
 
-    private void stopLocationUpdates() {
+    private void startUserLocationRunnable() {
+        Log.i( TAG, "startUserLocationRunnable: Inside runnable" );
+        mHandler.postDelayed( mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                retrieveUserLocation();
+                mHandler.postDelayed( mRunnable, LOCATION_UPDATE_INTERVAL );
+            }
+        }, LOCATION_UPDATE_INTERVAL );
     }
 
-    private void startUserLocationsRunnable() {
+    private void stopUsersLocationUpdates() {
+        mHandler.removeCallbacks( mRunnable );
+    }
+
+    private void retrieveUserLocation() {
+        Log.i( TAG, "retrieveUserLocation: Inside Retrieval" );
+
+        try {
+            for (final ClusterMarker clusterMarker : mClusterMarkers) {
+                DocumentReference userLocationReference = FirebaseFirestore.getInstance()
+                        .collection( getString( R.string.collection_user_locations ) )
+                        .document( clusterMarker.getUsers().getUser_id() );
+
+                userLocationReference.get().addOnCompleteListener( new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            final UserLocation userLocation = task.getResult().toObject( UserLocation.class );
+
+                            //Update the location
+                            if (userLocation != null)
+                                for (int i = 0; i < mClusterMarkers.size(); i++) {
+                                    try {
+                                        if (mClusterMarkers.get( i ).getUsers().getUser_id().equals(
+                                                userLocation.getUsers().getUser_id()
+                                        )) {
+                                            LatLng updatedVal = new LatLng(
+                                                    userLocation.getGeoPoint().getLatitude(),
+                                                    userLocation.getGeoPoint().getLongitude()
+                                            );
+
+                                            mClusterMarkers.get( i ).setPosition( updatedVal );
+                                            myClusterManagerRenderer.setUpdateMarker( mClusterMarkers.get( i ) );
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                        } else {
+                            Log.i( TAG, "onComplete: Unable to update users location line no 328" );
+                        }
+                    }
+                } );
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
         mapView.onResume();
-        startUserLocationsRunnable(); // update user locations every 'LOCATION_UPDATE_INTERVAL'
+        startUserLocationRunnable(); // update user locations every @LOCATION_UPDATE_INTERVAL
     }
 
     @Override
@@ -310,7 +374,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onPause() {
         mapView.onPause();
-        stopLocationUpdates(); // stop updating user locations
+        stopUsersLocationUpdates(); // stop updating user locations
         super.onPause();
     }
 
@@ -318,6 +382,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
     public void onDestroy() {
         mapView.onDestroy();
         super.onDestroy();
+        stopUsersLocationUpdates();
     }
 
     @Override

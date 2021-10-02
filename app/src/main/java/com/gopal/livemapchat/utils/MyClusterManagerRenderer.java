@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
@@ -45,7 +46,8 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
         imageView.setImageResource( item.getIconPicture() );
         Bitmap bitmap = iconGenerator.makeIcon();
 
-        markerOptions.icon( BitmapDescriptorFactory.fromBitmap( bitmap ) ).title( item.getTitle() );
+        markerOptions.icon( BitmapDescriptorFactory.fromBitmap( bitmap ) )
+                .title( item.getTitle() ).snippet(  item.getSnippet() );
     }
 
     /*we are going to cluster anything so we are returning false
@@ -56,5 +58,15 @@ public class MyClusterManagerRenderer extends DefaultClusterRenderer<ClusterMark
     @Override
     protected boolean shouldRenderAsCluster(@NonNull Cluster<ClusterMarker> cluster) {
         return false;
+    }
+
+    /***
+     * Update the GPS coordinates of a ClusterItem
+     */
+    public void setUpdateMarker(ClusterMarker clusterMarker){
+        Marker marker = getMarker( clusterMarker );
+        if (marker!= null){
+            marker.setPosition( clusterMarker.getPosition() );
+        }
     }
 }
