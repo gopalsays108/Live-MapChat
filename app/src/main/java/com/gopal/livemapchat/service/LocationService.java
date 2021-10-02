@@ -104,6 +104,7 @@ public class LocationService extends Service {
             return;
         }
 
+
         fusedLocationProviderClient.requestLocationUpdates( locationRequest, new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {

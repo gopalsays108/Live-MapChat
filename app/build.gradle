@@ -46,4 +46,12 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.android.gms:play-services-maps:17.0.1'
 
+    implementation 'com.google.maps:google-maps-services:0.9.3'
+
+    //For clustering the image google map utils
+    implementation 'com.google.maps.android:android-maps-utils:2.2.3'
+
+
+
+
 }
