@@ -5,9 +5,9 @@ import static com.gopal.livemapchat.Constants.CHANGE_VIEW_DURATION;
 import static com.gopal.livemapchat.Constants.MAPVIEW_BUNDLE_KEY;
 
 import android.Manifest;
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,7 +38,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,8 +60,7 @@ import java.util.ArrayList;
  * Use the {@link UserListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class UserListFragment extends Fragment implements OnMapReadyCallback,
-        GoogleMap.OnInfoWindowClickListener {
+public class UserListFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String TAG = UserListFragment.class.getSimpleName();
     private boolean isMapFullScreen = false;
@@ -206,7 +204,8 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         // setCameraView();
 
         addMapMarker();
-
+        handleClusterItemClickListener();
+        handleClusterItemInfoClickListener();
     }
 
     private void setUserPosition() {
@@ -263,14 +262,13 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
                 );
                 clusterManager.setRenderer( myClusterManagerRenderer );
             }
-            mGoogleMap.setOnInfoWindowClickListener( this );
 
             for (UserLocation userLocation : userLocationArrayList) {
                 try {
                     Log.d( TAG, "addMapMarkers: location: " + userLocation.getGeoPoint().toString() );
                     String snippet;
                     if (userLocation.getUsers().getUser_id().equals( FirebaseAuth.getInstance().getUid() ))
-                        snippet = "This is You";
+                        snippet = getString( R.string.this_is_you );
                     else
                         snippet = "Determine route to " + userLocation.getUsers().getUsername() + "?";
 
@@ -422,11 +420,57 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         mapView.onLowMemory();
     }
 
-    @Override
-    public void onInfoWindowClick(@NonNull Marker marker) {
-        Log.i( TAG, "onInfoWindowClick: " + marker.toString() );
-        Toast.makeText( getActivity(), marker.getSnippet(), Toast.LENGTH_SHORT ).show();
+    private void handleClusterItemInfoClickListener() {
+        clusterManager.setOnClusterItemInfoWindowClickListener(
+                new ClusterManager.OnClusterItemInfoWindowClickListener<ClusterMarker>() {
+                    @Override
+                    public void onClusterItemInfoWindowClick(ClusterMarker item) {
+                        if (item.getSnippet() != null)
+                            if (!item.getSnippet().equals( getString( R.string.this_is_you ) )) {
+                                final AlertDialog.Builder dialog = new AlertDialog.Builder( getActivity() );
+                                dialog.setMessage( item.getSnippet() )
+                                        .setCancelable( true )
+                                        .setPositiveButton( "Yes", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                Toast.makeText( getContext(), "Accepted", Toast.LENGTH_SHORT ).show();
+                                                dialogInterface.dismiss();
+                                            }
+                                        } )
+                                        .setNegativeButton( "No", (dialogInterface, i) -> {
+                                            dialogInterface.dismiss();
+                                        } );
+
+                                dialog.show();
+
+                            }
+                    }
+                } );
     }
+
+    private void handleClusterItemClickListener() {
+        clusterManager.setOnClusterItemClickListener(
+                new ClusterManager.OnClusterItemClickListener<ClusterMarker>() {
+                    @Override
+                    public boolean onClusterItemClick(ClusterMarker item) {
+
+                        if (mGoogleMap.getCameraPosition().zoom < 18) {
+                            new Handler().postDelayed( new Runnable() {
+                                @Override
+                                public void run() {
+                                    mGoogleMap.animateCamera( CameraUpdateFactory.newLatLngZoom(
+                                            new LatLng( item.getPosition().latitude,
+                                                    item.getPosition().longitude ),
+                                            18 ) );
+                                }
+                            }, 850 );
+
+                        }
+                        return false;
+                    }
+                } );
+    }
+
 
     private void expandMapAnimation() {
         isMapFullScreen = true;
@@ -454,6 +498,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
     }
 
     private void contractMapAnimation() {
+
         isMapFullScreen = false;
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone( constraintLayout );
@@ -473,6 +518,5 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
                 resetMapImageView.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
             }
         }, CHANGE_VIEW_DURATION );
-
     }
 }
