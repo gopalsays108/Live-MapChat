@@ -1,8 +1,12 @@
 package com.gopal.livemapchat.fragments;
 
+import static com.gopal.livemapchat.Constants.CHANGE_ICON_DURATION;
+import static com.gopal.livemapchat.Constants.CHANGE_VIEW_DURATION;
 import static com.gopal.livemapchat.Constants.MAPVIEW_BUNDLE_KEY;
 
 import android.Manifest;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -131,10 +135,21 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         fullScreenImage.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isMapFullScreen)
-                    contractMapAnimation();
-                else
-                    expandMapAnimation();
+
+                fullScreenImage.animate().alpha( 0.0f ).setDuration( CHANGE_ICON_DURATION );
+                resetMapImageView.animate().alpha( 0.0f ).setDuration( CHANGE_ICON_DURATION );
+
+
+                new Handler().postDelayed( new Runnable() {
+                    @Override
+                    public void run() {
+                        if (isMapFullScreen)
+                            contractMapAnimation();
+                        else
+                            expandMapAnimation();
+                    }
+                }, CHANGE_VIEW_DURATION );
+
             }
         } );
 
@@ -415,16 +430,26 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
 
     private void expandMapAnimation() {
         isMapFullScreen = true;
+
         ConstraintSet constraintSet = new ConstraintSet();
         constraintSet.clone( constraintLayout );
         constraintSet.constrainPercentHeight( R.id.user_list_map, 1 );
 
         Transition autoTransition = new ChangeBounds();
-        autoTransition.setDuration( 600 );
+        autoTransition.setDuration( CHANGE_VIEW_DURATION );
         autoTransition.setInterpolator( new AnticipateInterpolator( 0.0f ) );
 
         TransitionManager.beginDelayedTransition( mapView, autoTransition );
         constraintSet.applyTo( constraintLayout );
+
+        new Handler().postDelayed( new Runnable() {
+            @Override
+            public void run() {
+                fullScreenImage.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
+                resetMapImageView.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
+            }
+        }, CHANGE_VIEW_DURATION );
+
 
     }
 
@@ -435,10 +460,19 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         constraintSet.constrainPercentHeight( R.id.user_list_map, 0.5F );
 
         Transition autoTransition = new ChangeBounds();
-        autoTransition.setDuration( 600 );
+        autoTransition.setDuration( CHANGE_VIEW_DURATION );
         autoTransition.setInterpolator( new AnticipateInterpolator( -2.0f ) );
 
         TransitionManager.beginDelayedTransition( mapView, autoTransition );
         constraintSet.applyTo( constraintLayout );
+
+        new Handler().postDelayed( new Runnable() {
+            @Override
+            public void run() {
+                fullScreenImage.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
+                resetMapImageView.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
+            }
+        }, CHANGE_VIEW_DURATION );
+
     }
 }
