@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.InputType;
-import android.transition.Visibility;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -56,7 +55,6 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.auth.User;
 import com.gopal.livemapchat.adapter.ChatroomRecyclerAdapter;
 import com.gopal.livemapchat.loginregister.LoginActivity;
 import com.gopal.livemapchat.models.Chatroom;
@@ -67,7 +65,6 @@ import com.gopal.livemapchat.service.LocationService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
@@ -215,8 +212,6 @@ public class MainActivity extends AppCompatActivity {
         if (isServiceOK()) {
             if (isMapsEnabled()) {
                 return true;
-            } else {
-                Toast.makeText( getApplicationContext(), "Oops", Toast.LENGTH_SHORT ).show();
             }
         }
         return false;
@@ -368,18 +363,29 @@ public class MainActivity extends AppCompatActivity {
                         != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+
         fusedLocationClient.getLastLocation().addOnCompleteListener( new OnCompleteListener<Location>() {
             @Override
             public void onComplete(@NonNull Task<Location> task) {
                 if (task.isSuccessful()) {
-                    Location location = task.getResult();
-                    GeoPoint geoPoint = new GeoPoint( location.getLatitude(), location.getLongitude() );
-                    userLocation.setGeoPoint( geoPoint );
-                    userLocation.setTimestamp( null );
-                    Log.i( TAG, "onComplete: last location" + location );
-                    saveUserLocation();
-                    startLocationService();
-
+                    try {
+                        Location location = task.getResult();
+                        GeoPoint geoPoint = new GeoPoint( location.getLatitude(), location.getLongitude() );
+                        userLocation.setGeoPoint( geoPoint );
+                        userLocation.setTimestamp( null );
+                        Log.i( TAG, "onComplete: last location" + location );
+                        saveUserLocation();
+                        startLocationService();
+                    } catch (Exception e) {
+                        /*
+                         * https://stackoverflow.com/questions/29441384/fusedlocationapi-getlastlocation-always-null
+                         *
+                         * If app crashes again fo to this website for solution
+                         * */
+                        Toast.makeText( getApplicationContext(), "Failed to retrieve last location", Toast.LENGTH_SHORT ).show();
+                        Log.i( TAG, "onComplete: Failed to get last location: " + e.getMessage() );
+                        e.printStackTrace();
+                    }
                 }
             }
         } );
@@ -390,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent( getApplicationContext(), LocationService.class );
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // TODO: 10/2/2021 Uncomment
-                //MainActivity.this.startForegroundService( intent );
+                // MainActivity.this.startForegroundService( intent );
             } else {
                 //startService( intent );
             }
@@ -459,10 +465,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_profile){
-            startActivity( new Intent(getApplicationContext(), ProfileActivity.class));
+        if (item.getItemId() == R.id.action_profile) {
+            startActivity( new Intent( getApplicationContext(), ProfileActivity.class ) );
             return true;
-        }else if(item.getItemId() == R.id.action_sign_out){
+        } else if (item.getItemId() == R.id.action_sign_out) {
             signOut();
             return true;
         }

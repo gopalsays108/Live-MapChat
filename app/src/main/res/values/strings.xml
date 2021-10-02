@@ -39,8 +39,8 @@
     <string name="action_leave_chatroom">Leave chatroom</string>
     <string name="action_chatroom_user_list">User list</string>
     <string name="action_profile">Profile</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="full_screen_btn">full screen btn</string>
+    <string name="refresh_image_btn">Refresh Image btn</string>
 
 
 </resources>

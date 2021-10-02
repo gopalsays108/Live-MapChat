@@ -287,7 +287,6 @@ public class ChatroomActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.action_chatroom_user_list: {
-                // TODO: 10/2/2021  
                 inflateUserListFragment();
                 return true;
             }
@@ -308,16 +307,19 @@ public class ChatroomActivity extends AppCompatActivity {
     private void inflateUserListFragment() {
         hideSoftKeyboard();
 
-        UserListFragment userListFragment = UserListFragment.newInstance();
+        /*https://stackoverflow.com/questions/9245408/best-practice-for-instantiating-a-new-android-fragment
+        *
+        * This is link where we can see why we used newInstance */
+        UserListFragment fragment = UserListFragment.newInstance();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList( getString( R.string.intent_user_list ), userList );
         bundle.putParcelableArrayList( getString( R.string.intent_user_locations ), userLocations );
-        userListFragment.setArguments( bundle );
+        fragment.setArguments( bundle );
 
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.setCustomAnimations( R.anim.slide_in_up, R.anim.slide_out_up );
-        fragmentTransaction.replace( R.id.user_list_container, userListFragment, getString( R.string.fragment_user_list ) );
-        fragmentTransaction.addToBackStack( getString( R.string.fragment_user_list ) );
-        fragmentTransaction.commit();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setCustomAnimations( R.anim.slide_in_up, R.anim.slide_out_up );
+        transaction.replace( R.id.user_list_container, fragment, getString( R.string.fragment_user_list ) );
+        transaction.addToBackStack( getString( R.string.fragment_user_list ) );
+        transaction.commit();
     }
 }
