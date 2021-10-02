@@ -34,7 +34,6 @@
         android:id="@+id/btn_full_screen_map"
         android:layout_width="35dp"
         android:layout_height="35dp"
-
         android:contentDescription="@string/full_screen_btn"
         android:src="@drawable/ic_full_screen_black_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
