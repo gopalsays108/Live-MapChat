@@ -11,15 +11,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnticipateInterpolator;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.transition.ChangeBounds;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,7 +42,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.GeoApiContext;
-import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.gopal.livemapchat.R;
 import com.gopal.livemapchat.adapter.UserRecyclerAdapter;
@@ -56,8 +61,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = UserListFragment.class.getSimpleName();
-    private static final int MAP_LAYOUT_STATE_CONTRACTED = 0;
-    private static final int MAP_LAYOUT_STATE_EXPANDED = 1;
+    private boolean isMapFullScreen = false;
 
     private RecyclerView userListRecyclerView;
     private MapView mapView;
@@ -75,6 +79,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
     private ClusterManager<ClusterMarker> clusterManager;
     private MyClusterManagerRenderer myClusterManagerRenderer;
     private ArrayList<ClusterMarker> mClusterMarkers = new ArrayList<>();
+    private ConstraintLayout constraintLayout;
 
 
     private Handler mHandler = new Handler();
@@ -121,6 +126,17 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
         mapView = view.findViewById( R.id.user_list_map );
         resetMapImageView = view.findViewById( R.id.btn_reset_map );
         fullScreenImage = view.findViewById( R.id.btn_full_screen_map );
+        constraintLayout = view.findViewById( R.id.constraint );
+
+        fullScreenImage.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isMapFullScreen)
+                    contractMapAnimation();
+                else
+                    expandMapAnimation();
+            }
+        } );
 
         initUserListRecyclerView();
         initGoogleMap( savedInstanceState );
@@ -395,5 +411,34 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback,
     public void onInfoWindowClick(@NonNull Marker marker) {
         Log.i( TAG, "onInfoWindowClick: " + marker.toString() );
         Toast.makeText( getActivity(), marker.getSnippet(), Toast.LENGTH_SHORT ).show();
+    }
+
+    private void expandMapAnimation() {
+        isMapFullScreen = true;
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone( constraintLayout );
+        constraintSet.constrainPercentHeight( R.id.user_list_map, 1 );
+
+        Transition autoTransition = new ChangeBounds();
+        autoTransition.setDuration( 600 );
+        autoTransition.setInterpolator( new AnticipateInterpolator( 0.0f ) );
+
+        TransitionManager.beginDelayedTransition( mapView, autoTransition );
+        constraintSet.applyTo( constraintLayout );
+
+    }
+
+    private void contractMapAnimation() {
+        isMapFullScreen = false;
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone( constraintLayout );
+        constraintSet.constrainPercentHeight( R.id.user_list_map, 0.5F );
+
+        Transition autoTransition = new ChangeBounds();
+        autoTransition.setDuration( 600 );
+        autoTransition.setInterpolator( new AnticipateInterpolator( -2.0f ) );
+
+        TransitionManager.beginDelayedTransition( mapView, autoTransition );
+        constraintSet.applyTo( constraintLayout );
     }
 }
