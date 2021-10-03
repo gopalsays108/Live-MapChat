@@ -5,6 +5,7 @@ import static com.gopal.livemapchat.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LO
 import static com.gopal.livemapchat.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Chatroom> mChatrooms = new ArrayList<>();
     private UserLocation userLocation;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
@@ -120,11 +120,11 @@ public class MainActivity extends AppCompatActivity {
             View view = findViewById( R.id.content );
             Snackbar.make( view, "You can not make a chat room with name Gopal", Snackbar.LENGTH_SHORT ).show();
         } else {
-            builder.setPositiveButton( "Create", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton( "Next", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if (!input.getText().toString().isEmpty()) {
-                        createNewChatRoom( input.getText().toString() );
+                        alertWantToAddPassword(input.getText().toString());
                     } else {
                         Toast.makeText( getApplicationContext(), "Enter the chat name room", Toast.LENGTH_SHORT ).show();
                     }
@@ -140,11 +140,48 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createNewChatRoom(String name) {
+    private void alertWantToAddPassword(String name) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder( this );
+        builder.setTitle( "Want to add password? (optional)" );
+        builder.setCancelable( false );
+
+        final EditText input2 = new EditText( this );
+        input2.setInputType( InputType.TYPE_CLASS_TEXT );
+        builder.setView( input2 );
+
+        builder.setPositiveButton( "Create", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (!input2.getText().toString().isEmpty()) {
+                    createNewChatRoom( name, input2.getText().toString() );
+                } else {
+                    createNewChatRoom( name, "" );
+                }
+            }
+        } ).setNegativeButton( "cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        } );
+
+        builder.show();
+
+    }
+
+    private void createNewChatRoom(String name, String password) {
         showDialog();
+
+        String pass = "";
+        if (password.isEmpty())
+            pass = null;
+        else
+            pass = password;
 
         final Chatroom chatroom = new Chatroom();
         chatroom.setTitle( name );
+        chatroom.setPassword( pass );
 
         DocumentReference newChatroomRef = firebaseFirestore
                 .collection( getString( R.string.collection_chatrooms ) )
@@ -355,6 +392,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("MissingPermission")
     private void getLastKnownLocation() {
         Log.d( TAG, "getLastKnownLocation: called." );
         if (ActivityCompat.checkSelfPermission( this,

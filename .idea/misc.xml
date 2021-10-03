@@ -5,8 +5,11 @@
       <map>
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable-v24/ic_full_screen_black_24dp.xml" value="0.2703125" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable-v24/ic_refresh_black_24dp.xml" value="0.2703125" />
+        <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/chat_bg.xml" value="0.2703125" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/custombtn.xml" value="0.2703125" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/grey_border_top.xml" value="0.2703125" />
+        <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.2703125" />
+        <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/ic_baseline_lock_24.xml" value="0.2703125" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/drawable/ic_baseline_send_24.xml" value="0.2703125" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/layout/activity_chatroom.xml" value="0.25416666666666665" />
         <entry key="..\:/Users/Asus/AndroidStudioProjectNew/Live MapChat/app/src/main/res/layout/activity_login.xml" value="0.24010416666666667" />

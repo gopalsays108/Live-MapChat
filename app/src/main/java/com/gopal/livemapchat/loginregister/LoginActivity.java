@@ -90,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-                    Toast.makeText( getApplicationContext(), "Siged in as " + user.getEmail(), Toast.LENGTH_SHORT ).show();
+                    Toast.makeText( getApplicationContext(), "Logged in as " + user.getEmail(), Toast.LENGTH_SHORT ).show();
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                             .build();
@@ -143,7 +143,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (task.isSuccessful()) {
 
                 } else {
-                    Toast.makeText( getApplicationContext(), "Failed to signin", Toast.LENGTH_SHORT ).show();
+                    Toast.makeText( getApplicationContext(), "Failed to Sign", Toast.LENGTH_SHORT ).show();
                 }
             }
         } ).addOnFailureListener( new OnFailureListener() {

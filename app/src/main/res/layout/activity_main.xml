@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F275CCB1"
+    android:background="#D9DFE1"
     tools:context=".MainActivity">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -27,7 +27,7 @@
         android:elevation="5dp"
         android:hapticFeedbackEnabled="true"
         android:src="@drawable/ic_baseline_add_24"
-        app:backgroundTint="#F5FF68"
+        app:backgroundTint="#24A6E3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.957"

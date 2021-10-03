@@ -16,7 +16,7 @@
             android:id="@+id/textView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="120dp"
+            android:layout_marginTop="180dp"
             android:paddingStart="10dp"
             android:text="@string/welcome_to_live_mapchat"
             android:textColor="#ffff"

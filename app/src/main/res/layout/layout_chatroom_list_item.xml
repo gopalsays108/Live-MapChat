@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:padding="6dp"
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -12,6 +13,7 @@
         tools:text="Chatroom name"
         android:textSize="17sp"
         android:padding="12dp"
+        android:background="@drawable/chat_bg"
         app:layout_constraintHorizontal_bias="0.09"
         app:layout_constraintVertical_bias="0.02"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -20,5 +22,17 @@
         android:letterSpacing="0.035"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/lockIv"
+        android:visibility="invisible"
+        android:layout_width="18dp"
+        android:layout_height="30dp"
+        app:layout_constraintHorizontal_bias="0.97"
+        android:src="@drawable/ic_baseline_lock_24"
+        app:layout_constraintBottom_toBottomOf="@+id/chatroom_title"
+        app:layout_constraintEnd_toEndOf="@+id/chatroom_title"
+        app:layout_constraintStart_toStartOf="@+id/chatroom_title"
+        app:layout_constraintTop_toTopOf="@+id/chatroom_title" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,10 +7,12 @@ public class Chatroom implements Parcelable {
 
     private String title;
     private String chatroom_id;
+    private String password;
 
-    public Chatroom(String title, String chatroom_id) {
+    public Chatroom(String title, String chatroom_id, String password) {
         this.title = title;
         this.chatroom_id = chatroom_id;
+        this.password = password;
     }
 
     public Chatroom() {
@@ -20,6 +22,7 @@ public class Chatroom implements Parcelable {
     protected Chatroom(Parcel in) {
         title = in.readString();
         chatroom_id = in.readString();
+        password = in.readString();
     }
 
     public static final Creator<Chatroom> CREATOR = new Creator<Chatroom>() {
@@ -46,16 +49,16 @@ public class Chatroom implements Parcelable {
         return chatroom_id;
     }
 
-    public void setChatroom_id(String chatroom_id) {
-        this.chatroom_id = chatroom_id;
+    public String getPassword() {
+        return password;
     }
 
-    @Override
-    public String toString() {
-        return "Chatroom{" +
-                "title='" + title + '\'' +
-                ", chatroom_id='" + chatroom_id + '\'' +
-                '}';
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setChatroom_id(String chatroom_id) {
+        this.chatroom_id = chatroom_id;
     }
 
     @Override
@@ -67,5 +70,6 @@ public class Chatroom implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString( title );
         dest.writeString( chatroom_id );
+        dest.writeString( password );
     }
 }
