@@ -1,5 +1,8 @@
 package com.gopal.livemapchat;
 
+import static com.gopal.livemapchat.Constants.MY_SHARED_PREFERENCE_NAME;
+
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -17,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -291,7 +295,6 @@ public class ChatroomActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.action_chatroom_leave: {
-                // TODO: 10/2/2021
                 leaveChatroom();
                 return true;
             }
@@ -302,14 +305,26 @@ public class ChatroomActivity extends AppCompatActivity {
     }
 
     private void leaveChatroom() {
+
+        getApplication().getSharedPreferences( MY_SHARED_PREFERENCE_NAME, MODE_PRIVATE )
+                .edit().remove( chatroom.getChatroom_id() ).apply();
+        finish();
+
+        DocumentReference joinChatroomRef = firebaseFirestore
+                .collection( getString( R.string.collection_chatrooms ) )
+                .document( chatroom.getChatroom_id() )
+                .collection( getString( R.string.collection_chatroom_user_list ) )
+                .document( FirebaseAuth.getInstance().getUid() );
+
+        joinChatroomRef.delete();
     }
 
     private void inflateUserListFragment() {
         hideSoftKeyboard();
 
         /*https://stackoverflow.com/questions/9245408/best-practice-for-instantiating-a-new-android-fragment
-        *
-        * This is link where we can see why we used newInstance */
+         *
+         * This is link where we can see why we used newInstance */
         UserListFragment fragment = UserListFragment.newInstance();
         Bundle bundle = new Bundle();
         bundle.putParcelableArrayList( getString( R.string.intent_user_list ), userList );

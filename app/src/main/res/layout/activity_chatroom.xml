@@ -15,7 +15,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-
         </androidx.recyclerview.widget.RecyclerView>
 
     </RelativeLayout>
@@ -44,9 +43,12 @@
             android:layout_toStartOf="@+id/checkmark"
             android:background="@null"
             android:gravity="center_vertical"
+            android:paddingStart="12dp"
             android:hint="@string/new_message"
+            android:inputType="textCapSentences"
             android:textColor="@color/Black"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:autofillHints="@string/new_message" />
     </RelativeLayout>
 
     <FrameLayout
