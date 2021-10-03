@@ -35,4 +35,16 @@
         app:layout_constraintStart_toStartOf="@+id/chatroom_title"
         app:layout_constraintTop_toTopOf="@+id/chatroom_title" />
 
+    <ImageView
+        android:id="@+id/open_lockIv"
+        android:visibility="invisible"
+        android:layout_width="18dp"
+        android:layout_height="30dp"
+        app:layout_constraintHorizontal_bias="0.97"
+        android:src="@drawable/ic_baseline_lock_open_24"
+        app:layout_constraintBottom_toBottomOf="@+id/chatroom_title"
+        app:layout_constraintEnd_toEndOf="@+id/chatroom_title"
+        app:layout_constraintStart_toStartOf="@+id/chatroom_title"
+        app:layout_constraintTop_toTopOf="@+id/chatroom_title" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -7,4 +7,9 @@ public class Constants {
     public static final int PERMISSIONS_REQUEST_ENABLE_GPS = 9003;
     public static final int CHANGE_VIEW_DURATION = 300;
     public static final int CHANGE_ICON_DURATION = 200;
+
+
+    public static final String MY_SHARED_PREFERENCE_NAME = "myPref";
+
+
 }

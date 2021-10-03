@@ -1,9 +1,12 @@
 package com.gopal.livemapchat.adapter;
 
+import static com.gopal.livemapchat.Constants.MY_SHARED_PREFERENCE_NAME;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.CollectionReference;
@@ -56,10 +60,17 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.getTextView().setText( mChatrooms.get( position ).getTitle() );
 
+        SharedPreferences sharedPreferences = context.getSharedPreferences( MY_SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE );
+        boolean isAdded = sharedPreferences.getBoolean( mChatrooms.get( holder.getAdapterPosition() ).getChatroom_id(), false );
+
         if (mChatrooms.get( holder.getAdapterPosition() ).getPassword() == null) {
             holder.getLockView().setVisibility( View.INVISIBLE );
         } else {
-            holder.getLockView().setVisibility( View.VISIBLE );
+            if (isAdded) {
+                holder.getOpenLockView().setVisibility( View.VISIBLE );
+            } else {
+                holder.getLockView().setVisibility( View.VISIBLE );
+            }
         }
 
         holder.getTextView().setOnClickListener( new View.OnClickListener() {
@@ -69,7 +80,10 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
                 if (mChatrooms.get( holder.getAdapterPosition() ).getPassword() == null) {
                     chatRoomIntent( holder.getAdapterPosition() );
                 } else {
-                    askForPassword( mChatrooms.get( holder.getAdapterPosition() ).getPassword(), holder.getAdapterPosition() );
+                    if (isAdded)
+                        chatRoomIntent( holder.getAdapterPosition() );
+                    else
+                        askForPassword( mChatrooms.get( holder.getAdapterPosition() ).getPassword(), holder.getAdapterPosition() );
                 }
             }
         } );
@@ -97,6 +111,11 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
                     Toast.makeText( context, "Wrong password", Toast.LENGTH_SHORT ).show();
                     dialogInterface.dismiss();
                 } else {
+                    SharedPreferences sharedPreferences = context.getSharedPreferences( MY_SHARED_PREFERENCE_NAME, Context.MODE_PRIVATE );
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean( mChatrooms.get( adapterPosition ).getChatroom_id(), true );
+                    editor.apply();
+
                     chatRoomIntent( adapterPosition );
                 }
             }
@@ -123,11 +142,13 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
 
         private final TextView chatRoomNameTv;
         private final ImageView lock;
+        private final ImageView openLock;
 
         public ViewHolder(@NonNull View itemView) {
             super( itemView );
             chatRoomNameTv = itemView.findViewById( R.id.chatroom_title );
             lock = itemView.findViewById( R.id.lockIv );
+            openLock = itemView.findViewById( R.id.open_lockIv );
         }
 
         public TextView getTextView() {
@@ -136,6 +157,10 @@ public class ChatroomRecyclerAdapter extends RecyclerView.Adapter<ChatroomRecycl
 
         public ImageView getLockView() {
             return lock;
+        }
+
+        public ImageView getOpenLockView() {
+            return openLock;
         }
     }
 }
