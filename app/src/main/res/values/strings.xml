@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Live MapChat</string>
-    <string name="welcome_to_live_mapchat">Welcome to Live MapChat</string>
+    <string name="welcome_to_live_mapchat">Welcome to, \n Live MapChat</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="register">Register</string>
@@ -44,6 +44,8 @@
 
 
     <string name="this_is_you">This is you</string>
+    <string name="hello_there">Hello there,</string>
+    <string name="welcome_back">Welcome back</string>
 
 
 </resources>

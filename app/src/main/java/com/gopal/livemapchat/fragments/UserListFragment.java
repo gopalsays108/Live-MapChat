@@ -7,16 +7,23 @@ import static com.gopal.livemapchat.Constants.MAPVIEW_BUNDLE_KEY;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnticipateInterpolator;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +31,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -38,14 +46,23 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.JsonObject;
+import com.google.maps.DirectionsApi;
+import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
+import com.google.maps.PendingResult;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.internal.PolylineEncoding;
+import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
 import com.gopal.livemapchat.R;
 import com.gopal.livemapchat.adapter.UserRecyclerAdapter;
 import com.gopal.livemapchat.models.ClusterMarker;
@@ -54,6 +71,7 @@ import com.gopal.livemapchat.models.Users;
 import com.gopal.livemapchat.utils.MyClusterManagerRenderer;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -76,7 +94,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     private LatLngBounds mapBoundary;  //This is help to set boundary where camera view is lookign at
     private ImageView fullScreenImage;
     private ImageView resetMapImageView;
-    private GeoApiContext geoApiContext;
+    private GeoApiContext geoApiContext = null;
 
     private ClusterManager<ClusterMarker> clusterManager;
     private MyClusterManagerRenderer myClusterManagerRenderer;
@@ -87,7 +105,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     private Handler mHandler = new Handler();
     private Runnable mRunnable;
     private static final int LOCATION_UPDATE_INTERVAL = 3000;
-
 
     public UserListFragment() {
         // Required empty public constructor
@@ -189,13 +206,15 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
 
-        if (ActivityCompat.checkSelfPermission( getActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission( getContext(), Manifest.permission.ACCESS_COARSE_LOCATION )
-                        != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        googleMap.setMyLocationEnabled( false );
+        if (getActivity() != null)
+            if (ActivityCompat.checkSelfPermission( getActivity(),
+                    Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission( getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION )
+                            != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+
+        googleMap.setMyLocationEnabled( true );
         googleMap.setMapType( GoogleMap.MAP_TYPE_HYBRID );
         googleMap.setTrafficEnabled( true );
         googleMap.setBuildingsEnabled( true );
@@ -204,8 +223,14 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
         // setCameraView();
 
         addMapMarker();
+
+        changeMyCurrentPositionButtonLocation();
+
+        //Handles all click listener
         handleClusterItemClickListener();
         handleClusterItemInfoClickListener();
+        handleClusterItemInfoLongClickListener();
+
     }
 
     private void setUserPosition() {
@@ -218,7 +243,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
 
     private void setCameraView() {
 
-        /**Overall map view window 0.2 * 0.2 = 0.04*/
+        /** Overall map view window 0.2 * 0.2 = 0.04 */
         double bottomBoundary = mUserPosition.getGeoPoint().getLatitude() - .01;
         double leftBoundary = mUserPosition.getGeoPoint().getLongitude() - .01;
 
@@ -433,7 +458,7 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                                         .setPositiveButton( "Yes", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialogInterface, int i) {
-                                                Toast.makeText( getContext(), "Accepted", Toast.LENGTH_SHORT ).show();
+                                                calculateDirection( item );
                                                 dialogInterface.dismiss();
                                             }
                                         } )
@@ -448,7 +473,53 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 } );
     }
 
+    private void handleClusterItemInfoLongClickListener() {
+        clusterManager.setOnClusterItemInfoWindowLongClickListener( new ClusterManager.OnClusterItemInfoWindowLongClickListener<ClusterMarker>() {
+            @Override
+            public void onClusterItemInfoWindowLongClick(ClusterMarker item) {
+                Geocoder geocode = new Geocoder( getContext() );
+                try {
+                    List<Address> fromLocation = geocode.getFromLocation( item.getPosition().latitude, item.getPosition().longitude, 1 );
+
+                    String add = "";
+                    if (fromLocation != null && fromLocation.size() > 0) {
+                        if (fromLocation.get( 0 ).getAddressLine( 0 ) != null) {
+                            add += fromLocation.get( 0 ).getAddressLine( 0 ) + "\n";
+                        }
+
+                        if (fromLocation.get( 0 ).getLocality() != null) {
+                            add += fromLocation.get( 0 ).getLocality() + " ";
+                        }
+
+                        if (fromLocation.get( 0 ).getPostalCode() != null) {
+                            add += fromLocation.get( 0 ).getPostalCode() + " ";
+                        }
+
+                        if (fromLocation.get( 0 ).getAdminArea() != null) {
+                            add += fromLocation.get( 0 ).getAdminArea();
+                        }
+
+                        if (getContext() != null) {
+                            ClipboardManager clipboardManager = (ClipboardManager) getContext().getSystemService( Context.CLIPBOARD_SERVICE );
+                            ClipData data = ClipData.newPlainText( "Address", add );
+                            clipboardManager.setPrimaryClip( data );
+
+                            if (item.getUsers().getUser_id().equals( FirebaseAuth.getInstance().getUid() )) {
+                                Toast.makeText( getContext(), "Copied your address to clipboard", Toast.LENGTH_LONG ).show();
+                            } else {
+                                Toast.makeText( getContext(), "Copied " + item.getUsers().getUsername() + " address to clipboard", Toast.LENGTH_LONG ).show();
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.d( TAG, "onClusterItemInfoWindowLongClick: " + e.getMessage() );
+                }
+            }
+        } );
+    }
+
     private void handleClusterItemClickListener() {
+
         clusterManager.setOnClusterItemClickListener(
                 new ClusterManager.OnClusterItemClickListener<ClusterMarker>() {
                     @Override
@@ -471,6 +542,67 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 } );
     }
 
+    private void calculateDirection(ClusterMarker item) {
+        LatLng destination = new LatLng(
+                item.getPosition().latitude,
+                item.getPosition().longitude
+        );
+
+        DirectionsApiRequest directionsApiRequest = new DirectionsApiRequest( geoApiContext );
+        directionsApiRequest.alternatives( true );
+        directionsApiRequest.origin( new com.google.maps.model.LatLng(
+                mUserPosition.getGeoPoint().getLatitude(),
+                mUserPosition.getGeoPoint().getLongitude()
+        ) );
+
+        directionsApiRequest.destination( String.valueOf( destination ) )
+                .setCallback( new PendingResult.Callback<DirectionsResult>() {
+                    @Override
+                    public void onResult(DirectionsResult result) {
+
+//                        Log.d( TAG, "onResult: " + result.toString() );
+//                        Log.d( TAG, "calculateDirections: routes: " + result.routes[0].toString() );
+//                        Log.d( TAG, "calculateDirections: duration: " + result.routes[0].legs[0].duration );
+//                        Log.d( TAG, "calculateDirections: distance: " + result.routes[0].legs[0].distance );
+//                        Log.d( TAG, "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString() );
+                        addPolyLinesToMap( result );
+                    }
+
+                    @Override
+                    public void onFailure(Throwable e) {
+                        Log.d( TAG, "onFailure: inside " + e.getMessage() );
+                    }
+                } );
+    }
+
+    private void addPolyLinesToMap(DirectionsResult result) {
+
+        //Anything inside of this is posted on the main thread
+        new Handler( Looper.getMainLooper() ).post( new Runnable() {
+            @Override
+            public void run() {
+                for (DirectionsRoute route : result.routes) {
+                    List<com.google.maps.model.LatLng> decodedPaths = PolylineEncoding.decode(
+                            route.overviewPolyline.getEncodedPath() );
+
+                    List<LatLng> newDecodedPath = new ArrayList<>();
+
+                    for (com.google.maps.model.LatLng latLng : decodedPaths) {
+                        newDecodedPath.add( new LatLng(
+                                latLng.lat,
+                                latLng.lng
+                        ) );
+                    }
+
+                    Polyline polyline;
+                    polyline = mGoogleMap.addPolyline( new PolylineOptions().addAll( newDecodedPath ) );
+                    polyline.setColor( ContextCompat.getColor( getActivity(), R.color.blue1 ) );
+                    polyline.setClickable( true );
+                }
+
+            }
+        } );
+    }
 
     private void expandMapAnimation() {
         isMapFullScreen = true;
@@ -493,8 +625,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 resetMapImageView.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
             }
         }, CHANGE_VIEW_DURATION );
-
-
     }
 
     private void contractMapAnimation() {
@@ -518,5 +648,18 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
                 resetMapImageView.animate().alpha( 1f ).setDuration( CHANGE_ICON_DURATION );
             }
         }, CHANGE_VIEW_DURATION );
+    }
+
+    private void changeMyCurrentPositionButtonLocation() {
+
+        View locationButton = ((View) mapView.findViewById( Integer.parseInt( "1" ) )
+                .getParent()).findViewById( Integer.parseInt( "2" ) );
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
+
+        rlp.addRule( RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE );
+        rlp.addRule( RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE );
+        rlp.addRule( RelativeLayout.ALIGN_PARENT_RIGHT, 0 );
+        rlp.addRule( RelativeLayout.ALIGN_PARENT_TOP, 0 );
+        rlp.setMargins( 0, 0, 15, 170 );
     }
 }

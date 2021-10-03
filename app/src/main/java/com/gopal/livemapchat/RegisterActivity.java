@@ -1,11 +1,7 @@
 package com.gopal.livemapchat;
 
 import static android.text.TextUtils.isEmpty;
-
 import static com.gopal.livemapchat.utils.Checks.doStringsMatch;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,8 +9,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -25,7 +24,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
-import com.google.firebase.firestore.auth.User;
 import com.gopal.livemapchat.loginregister.LoginActivity;
 import com.gopal.livemapchat.models.Users;
 
@@ -39,6 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private static final String TAG = LoginActivity.class.getSimpleName();
     private FirebaseFirestore firebaseFirestore;
+    private ProgressBar progress;
 
 
     @Override
@@ -50,6 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
         passwordEt = findViewById( R.id.password );
         register_btn = findViewById( R.id.regsiter_btn );
         passwordConEt = findViewById( R.id.password_con );
+        progress = findViewById( R.id.progress );
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -80,9 +80,17 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerNewEmail(String email, String pass) {
+
+        register_btn.setVisibility( View.INVISIBLE );
+        progress.setVisibility( View.VISIBLE );
+
         firebaseAuth.createUserWithEmailAndPassword( email, pass ).addOnCompleteListener( new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
+
+                register_btn.setVisibility( View.VISIBLE );
+                progress.setVisibility( View.INVISIBLE );
+
                 if (task.isSuccessful() && FirebaseAuth.getInstance().getUid() != null) {
                     Users user = new Users();
                     user.setEmail( email );
@@ -116,6 +124,8 @@ public class RegisterActivity extends AppCompatActivity {
         } ).addOnFailureListener( new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                register_btn.setVisibility( View.VISIBLE );
+                progress.setVisibility( View.INVISIBLE );
                 View parentLayout = findViewById( android.R.id.content );
                 Snackbar.make( parentLayout, "Something went wrong.", Snackbar.LENGTH_SHORT ).show();
 

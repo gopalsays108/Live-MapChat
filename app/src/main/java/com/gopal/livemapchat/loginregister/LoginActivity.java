@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseAuth.AuthStateListener authStateListener;
     private static final String TAG = LoginActivity.class.getSimpleName();
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +51,8 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn = findViewById( R.id.login_btn );
         registerNewTv = findViewById( R.id.register_new_tv );
         firebaseAuth = FirebaseAuth.getInstance();
+        progressBar = findViewById( R.id.progress );
         settUpFirebaseAuth();
-
 
         loginBtn.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -103,7 +105,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
                                 //This is user singleton class, now we can call user obejct from any activity anytime
-                                ((UserClient)(getApplicationContext())).setUsers(users);
+                                ((UserClient) (getApplicationContext())).setUsers( users );
                             }
                         }
                     } );
@@ -129,10 +131,15 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void loginToFirebaseUsingEmailAndPass(String email, String pass) {
+        loginBtn.setVisibility( View.GONE );
+        progressBar.setVisibility( View.VISIBLE );
 
         firebaseAuth.signInWithEmailAndPassword( email, pass ).addOnCompleteListener( new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
+                loginBtn.setVisibility( View.VISIBLE );
+                progressBar.setVisibility( View.GONE );
+
                 if (task.isSuccessful()) {
 
                 } else {
@@ -142,6 +149,8 @@ public class LoginActivity extends AppCompatActivity {
         } ).addOnFailureListener( new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
+                loginBtn.setVisibility( View.VISIBLE );
+                progressBar.setVisibility( View.GONE );
                 Log.i( TAG, "onFailure: Exception failure: " + e.getLocalizedMessage() );
             }
         } );

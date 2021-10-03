@@ -18,16 +18,22 @@
         android:theme="@style/Theme.LiveMapChat">
         <activity
             android:name=".ProfileActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ChatroomActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".RegisterActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/RegisterTheme" />
         <activity
             android:name=".loginregister.LoginActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@style/RegisterTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -36,7 +42,8 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="portrait" />
 
         <!--
           The API key for Google Maps-based APIs is defined as a string resource.
@@ -48,7 +55,7 @@
      -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="${MAPS_API_KEY}"/>
+            android:value="${MAPS_API_KEY}" />
 
         <service
             android:name=".service.LocationService"

@@ -48,6 +48,7 @@
     <ImageView
         android:id="@+id/btn_reset_map"
         android:layout_width="30dp"
+        android:visibility="invisible"
         android:layout_height="30dp"
         android:background="@color/white"
         android:contentDescription="@string/refresh_image_btn"
