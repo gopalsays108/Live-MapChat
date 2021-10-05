@@ -291,7 +291,12 @@ public class ChatroomActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.action_chatroom_user_list: {
-                inflateUserListFragment();
+                try {
+                    if (userList != null && userLocations != null)
+                        inflateUserListFragment();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 return true;
             }
             case R.id.action_chatroom_leave: {
@@ -323,7 +328,6 @@ public class ChatroomActivity extends AppCompatActivity {
         hideSoftKeyboard();
 
         /*https://stackoverflow.com/questions/9245408/best-practice-for-instantiating-a-new-android-fragment
-         *
          * This is link where we can see why we used newInstance */
         UserListFragment fragment = UserListFragment.newInstance();
         Bundle bundle = new Bundle();

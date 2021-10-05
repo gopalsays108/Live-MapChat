@@ -420,7 +420,6 @@ public class MainActivity extends AppCompatActivity {
                          *
                          * If app crashes again fo to this website for solution
                          * */
-                        Toast.makeText( getApplicationContext(), "Failed to retrieve last location", Toast.LENGTH_SHORT ).show();
                         Log.i( TAG, "onComplete: Failed to get last location: " + e.getMessage() );
                         e.printStackTrace();
                     }
@@ -434,9 +433,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent( getApplicationContext(), LocationService.class );
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 // TODO: 10/2/2021 Uncomment
-                // MainActivity.this.startForegroundService( intent );
+                MainActivity.this.startForegroundService( intent );
             } else {
-                //startService( intent );
+                startService( intent );
             }
         }
     }

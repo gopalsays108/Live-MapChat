@@ -116,7 +116,6 @@ public class UserListFragment extends Fragment implements OnMapReadyCallback {
      *
      * @return A new instance of fragment UserListFragment.
      */
-    // TODO: Rename and change types and number of parameters
     public static UserListFragment newInstance() {
         return new UserListFragment();
     }
