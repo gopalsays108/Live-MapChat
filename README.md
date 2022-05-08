@@ -1,5 +1,4 @@
 # Live-MapChat
-Under development
 Made a Chat app using Firebase as a backend and Google Maps SDK.
 Features.
 1. Used Google Maps SDK.
